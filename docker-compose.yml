@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  
+
+  setup:
+    build: .
+    depends_on:
+      - db
+    environment:
+      POSTGRES_HOST: db    
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_SCHEMA: ${POSTGRES_SCHEMA:-public}
+      CSV_URL: ${CSV_URL}
+    command: ["scripts/wait_for_db.sh", "python", "-m", "initial_setup.setup_database"]
+
+  app:
+    build: .
+    depends_on:
+      - db
+      - setup             
+    environment:
+      POSTGRES_HOST: db  
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      CSV_URL: ${CSV_URL}
+    volumes:
+      - .:/app 
+    command: ["python", "app.py"]
+
+volumes:
+  pgdata:

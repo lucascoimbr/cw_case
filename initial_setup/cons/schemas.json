@@ -1,0 +1,24 @@
+{
+  "enums": [
+    {
+      "name": "transaction_status",
+      "values": ["approved", "denied"]
+    }
+  ],
+  "tables": [
+      { 
+        "name": "transactions",
+        "columns": [
+          {"name": "transaction_id", "type": "BIGINT", "unique": true, "not_null": true},
+          {"name": "merchant_id", "type": "BIGINT"},
+          {"name": "user_id", "type": "BIGINT"},
+          {"name": "card_number", "type": "TEXT"},
+          {"name": "transaction_date", "type": "TIMESTAMP"},
+          {"name": "transaction_amount", "type": "DOUBLE PRECISION"},
+          {"name": "device_id", "type": "BIGINT"},
+          {"name": "has_cbk", "type": "BOOLEAN"}
+        ]
+      }
+    ]
+  }
+  

@@ -31,12 +31,19 @@ def is_valid_transaction(payload):
         sql_query = f"{sql_query} and user_id = {user_id}"
         user_profile = conn.query_to_dataframe(sql_query)    
         
-        distinct_cards_2_weeks = user_profile.get('distinct_cards_2_weeks')[0] if user_profile.get('distinct_cards_2_weeks') else 0
-        txns_by_user_last_1h_hour = user_profile.get('txns_by_user_last_1h_hour')[0] if user_profile.get('txns_by_user_last_1h_hour') else 0
-        num_cbk_card_bin_7d_percent = user_profile.get('num_cbk_card_bin_7d_percent')[0] if user_profile.get('num_cbk_card_bin_7d_percent') else 0
-        avg_txns_by_user_1h = user_profile.get('avg_txns_by_user_1h')[0] if user_profile.get('avg_txns_by_user_1h') else 0
-        avg_transaction_amount_7d = user_profile.get('avg_transaction_amount_7d')[0] if user_profile.get('avg_transaction_amount_7d') else 0
-        user_cbk_count_lifetime_percent = user_profile.get('user_cbk_count_lifetime_percent')[0] if user_profile.get('user_cbk_count_lifetime_percent') else 0
+        def safe_get_scalar(series, default=0):
+            if series is None or len(series) == 0:
+                return default
+            if hasattr(series, "iloc"):
+                return series.iloc[0] if series.iloc[0] is not None else default
+            return series
+
+        distinct_cards_2_weeks = safe_get_scalar(user_profile.get('distinct_cards_2_weeks'),1)
+        txns_by_user_last_1h_hour = safe_get_scalar(user_profile.get('txns_by_user_last_1h_hour'),20)
+        num_cbk_card_bin_7d_percent = safe_get_scalar(user_profile.get('num_cbk_card_bin_7d_percent'),0)
+        avg_txns_by_user_1h = safe_get_scalar(user_profile.get('avg_txns_by_user_1h'),20)
+        avg_transaction_amount_7d = safe_get_scalar(user_profile.get('avg_transaction_amount_7d'),10000)
+        user_cbk_count_lifetime_percent = safe_get_scalar(user_profile.get('user_cbk_count_lifetime_percent'),0)
 
         if user_cbk_count_lifetime_percent > 0:
             result = (False, "Transaction denied due to high chargeback history")
@@ -51,7 +58,7 @@ def is_valid_transaction(payload):
         else:
             result = (True, "Transaction approved")
  
-        return result
+        return result[0], result[1]
         
     except Exception as e:
         # If there's any error in processing, deny for safety

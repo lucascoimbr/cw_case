@@ -1,6 +1,8 @@
 services:
   db:
-    image: postgres:13
+    build:
+      context: .
+      dockerfile: db.Dockerfile
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -9,15 +11,17 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"  
+      - "5432:5432"
 
   setup:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - db
     environment:
-      POSTGRES_HOST: db    
-      POSTGRES_PORT: 5432
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -26,19 +30,25 @@ services:
     command: ["scripts/wait_for_db.sh", "python", "-m", "initial_setup.setup_database"]
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - db
-      - setup             
+      - setup
     environment:
-      POSTGRES_HOST: db  
-      POSTGRES_PORT: 5432
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       CSV_URL: ${CSV_URL}
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: 5000
     volumes:
-      - .:/app 
+      - .:/app
+    expose:
+      - "5000"
     command: ["python", "app.py"]
 
 volumes:

@@ -1,6 +1,9 @@
 from psycopg2.extras import RealDictCursor
 import psycopg2
 import pandas as pd
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def execute_queries(conn, queries):
     """Executes a list of SQL queries using the provided database connection."""

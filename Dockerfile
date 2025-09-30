@@ -1,20 +1,23 @@
 FROM python:3.11-slim
 
-# Install system dependencies
+# Install system dependencies (build + postgres client libs + curl/wget/netcat)
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     postgresql-client \
+    curl \
+    wget \
+    netcat-traditional \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Set the working directory inside the container
+# Working directory
 WORKDIR /app
 
-# Set PYTHONPATH to include /app
+# Ensure PYTHONPATH includes /app
 ENV PYTHONPATH="${PYTHONPATH}:/app"
 
-# Copy only the requirements file to leverage Docker cache
+# Copy everything (source code, requirements, scripts)
 COPY . .
 
 # Install Python dependencies
